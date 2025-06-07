@@ -1,0 +1,16 @@
+# Directorio del entorno virtual
+venv/
+
+# Archivos compilados de Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# Archivos de bases de datos comunes
+*.sqlite3
+*.db
+
+# Otros archivos generados por el sistema
+.DS_Store
+Thumbs.db
