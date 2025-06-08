@@ -3,7 +3,7 @@ import platform
 import os
 from . import config
 
-# Variables globales para la interfaz de usuario
+# Global variables for the user interface
 running = True
 paused = False
 esc_count = 0
@@ -12,21 +12,21 @@ confirm_window = None
 status_label = None
 
 def set_icon(window, icon_path):
-    """Establece el icono de la aplicación de forma compatible con múltiples plataformas."""
+    """Sets the application icon in a way compatible with multiple platforms."""
     if os.path.exists(icon_path):
         try:
-            # En Windows
+            # On Windows
             if platform.system() == "Windows":
                 window.iconbitmap(icon_path)
-                # También establecer el icono en la barra de tareas
+                # Also set the icon in the taskbar
                 try:
                     from ctypes import windll
                     windll.shell32.SetCurrentProcessExplicitAppUserModelID(config.APP_ID)
                 except:
-                    pass  # Si falla, continuamos sin el icono en la barra de tareas
-            # En macOS o Linux
+                    pass  # If it fails, continue without the taskbar icon
+            # On macOS or Linux
             elif platform.system() in ["Darwin", "Linux"]:
-                # Intentar cargar el icono como imagen y establecerlo
+                # Try to load the icon as an image and set it
                 try:
                     import PIL.Image
                     import PIL.ImageTk
@@ -34,12 +34,12 @@ def set_icon(window, icon_path):
                     icon = PIL.ImageTk.PhotoImage(img)
                     window.tk.call('wm', 'iconphoto', window._w, icon)
                 except:
-                    pass  # Si falla, continuamos sin icono
+                    pass  # If it fails, continue without icon
         except:
-            pass  # Si falla cualquier parte, seguimos sin el icono
+            pass  # If any part fails, continue without the icon
 
 def center_window(window, width, height):
-    """Centra la ventana en la pantalla."""
+    """Centers the window on the screen."""
     screen_width = window.winfo_screenwidth()
     screen_height = window.winfo_screenheight()
     x = (screen_width - width) // 2
@@ -47,48 +47,48 @@ def center_window(window, width, height):
     window.geometry(f"{width}x{height}+{x}+{y}")
 
 def show_confirm_dialog():
-    """Muestra un diálogo de confirmación para detener la aplicación."""
+    """Shows a confirmation dialog to stop the application."""
     global paused, confirm_window, running
     
-    # Pausar la ejecución mientras se muestra el diálogo
+    # Pause execution while showing the dialog
     paused = True
     
-    # Evitar crear múltiples ventanas de confirmación
+    # Avoid creating multiple confirmation windows
     if confirm_window is not None:
         return
     
-    # Crear ventana de confirmación
+    # Create confirmation window
     confirm_window = tk.Toplevel()
-    confirm_window.title(f"{config.APP_NAME} - Confirmación")
+    confirm_window.title(f"{config.APP_NAME} - Confirmation")
     
-    # Configurar el tamaño de la ventana
+    # Configure window size
     window_width = 300
     window_height = 150
     
-    # Centrar ventana
+    # Center window
     center_window(confirm_window, window_width, window_height)
     
-    # Establecer el icono de la aplicación
+    # Set application icon
     set_icon(confirm_window, config.ICON_PATH)
     
     confirm_window.attributes("-topmost", True)
     confirm_window.configure(bg=config.UI_BACKGROUND_COLOR)
     
-    # Mensaje de confirmación
+    # Confirmation message
     confirm_label = tk.Label(
         confirm_window,
-        text="¿Desea detener CopilotClicker?",
+        text="Do you want to stop CopilotClicker?",
         fg=config.UI_TEXT_COLOR,
         bg=config.UI_BACKGROUND_COLOR,
         font=("Arial", 12)
     )
     confirm_label.pack(pady=20)
     
-    # Frame para los botones
+    # Frame for buttons
     button_frame = tk.Frame(confirm_window, bg=config.UI_BACKGROUND_COLOR)
     button_frame.pack(pady=10)
     
-    # Función para confirmar y detener
+    # Function to confirm and stop
     def confirm_exit():
         global running, paused, confirm_window
         running = False
@@ -96,17 +96,17 @@ def show_confirm_dialog():
         confirm_window.destroy()
         confirm_window = None
     
-    # Función para cancelar y continuar
+    # Function to cancel and continue
     def cancel_exit():
         global paused, confirm_window
         paused = False
         confirm_window.destroy()
         confirm_window = None
     
-    # Botones de confirmación
+    # Confirmation buttons
     yes_button = tk.Button(
         button_frame,
-        text="Sí",
+        text="Yes",
         command=confirm_exit,
         width=10
     )
@@ -120,30 +120,30 @@ def show_confirm_dialog():
     )
     no_button.pack(side=tk.LEFT, padx=10)
     
-    # Dar foco al botón Sí
+    # Focus on Yes button
     yes_button.focus_set()
     
-    # Manejar cierre de ventana con el botón X
+    # Handle window close with X button
     confirm_window.protocol("WM_DELETE_WINDOW", cancel_exit)
 
 def create_info_window():
-    """Crea y gestiona la ventana principal de información."""
+    """Creates and manages the main information window."""
     global status_label, paused
     
     window = tk.Tk()
     window.title(config.APP_NAME)
     
-    # Configurar y centrar la ventana
+    # Configure and center the window
     center_window(window, config.UI_WINDOW_WIDTH, config.UI_WINDOW_HEIGHT)
     
-    # Establecer el icono de la aplicación
+    # Set application icon
     set_icon(window, config.ICON_PATH)
     
-    window.attributes("-alpha", 1.0)   # Sin transparencia
-    window.attributes("-topmost", True)  # Siempre visible
+    window.attributes("-alpha", 1.0)   # No transparency
+    window.attributes("-topmost", True)  # Always visible
     window.configure(bg=config.UI_BACKGROUND_COLOR)
     
-    # Título con el texto de información
+    # Title with information text
     title_label = tk.Label(
         window, 
         text=config.APP_NAME,
@@ -153,49 +153,49 @@ def create_info_window():
     )
     title_label.pack(pady=(15, 5))
     
-    # Descripción de la aplicación
+    # Application description
     desc_label = tk.Label(
         window, 
-        text="Automatización para GitHub Copilot",
+        text="Automation for GitHub Copilot",
         fg=config.UI_SECONDARY_TEXT_COLOR,
         bg=config.UI_BACKGROUND_COLOR,
         font=("Arial", 10)
     )
     desc_label.pack(pady=(0, 10))
     
-    # Etiqueta de estado
+    # Status label
     status_label = tk.Label(
         window, 
-        text="Ejecutando - Buscando botón de continuar...",
+        text="Running - Searching for continue button...",
         fg=config.UI_RUNNING_COLOR,
         bg=config.UI_BACKGROUND_COLOR,
         font=("Arial", 9)
     )
     status_label.pack(pady=(0, 10))
     
-    # Frame para los botones
+    # Frame for buttons
     button_frame = tk.Frame(window, bg=config.UI_BACKGROUND_COLOR)
     button_frame.pack(pady=10)
     
-    # Función para el botón de pausa/reanudar
+    # Function for pause/resume button
     def toggle_pause():
         global paused
         paused = not paused
         if paused:
-            pause_button.config(text="▶ Reanudar")
-            status_label.config(text="Pausado", fg=config.UI_PAUSED_COLOR)
+            pause_button.config(text="▶ Resume")
+            status_label.config(text="Paused", fg=config.UI_PAUSED_COLOR)
         else:
-            pause_button.config(text="⏸ Pausar")
-            status_label.config(text="Ejecutando - Buscando botón de continuar...", fg=config.UI_RUNNING_COLOR)
+            pause_button.config(text="⏸ Pause")
+            status_label.config(text="Running - Searching for continue button...", fg=config.UI_RUNNING_COLOR)
     
-    # Función para el botón detener
+    # Function for stop button
     def stop_app():
         show_confirm_dialog()
     
-    # Botón de pausa/reanudar
+    # Pause/resume button
     pause_button = tk.Button(
         button_frame,
-        text="⏸ Pausar",
+        text="⏸ Pause",
         command=toggle_pause,
         width=12,
         bg=config.UI_BUTTON_PAUSE_COLOR,
@@ -204,10 +204,10 @@ def create_info_window():
     )
     pause_button.pack(side=tk.LEFT, padx=5)
     
-    # Botón de detener
+    # Stop button
     stop_button = tk.Button(
         button_frame,
-        text="⏹ Detener",
+        text="⏹ Stop",
         command=stop_app,
         width=12,
         bg=config.UI_BUTTON_STOP_COLOR,
@@ -216,23 +216,23 @@ def create_info_window():
     )
     stop_button.pack(side=tk.LEFT, padx=5)
     
-    # Información de ayuda
+    # Help information
     help_label = tk.Label(
         window, 
-        text=f"Presiona ESC {config.ESC_COUNT_THRESHOLD} veces para detener",
+        text=f"Press ESC {config.ESC_COUNT_THRESHOLD} times to stop",
         fg=config.UI_HELP_TEXT_COLOR,
         bg=config.UI_BACKGROUND_COLOR,
         font=("Arial", 9)
     )
     help_label.pack(pady=(5, 0))
     
-    # Función para manejar el cierre de la ventana
+    # Function to handle window close
     def on_close():
         show_confirm_dialog()
     
     window.protocol("WM_DELETE_WINDOW", on_close)
     
-    # Actualizar estado
+    # Update status
     def update_status():
         if running:
             window.after(500, update_status)
@@ -243,18 +243,18 @@ def create_info_window():
     window.mainloop()
 
 def is_paused():
-    """Retorna si la aplicación está pausada."""
+    """Returns whether the application is paused."""
     return paused
 
 def is_running():
-    """Retorna si la aplicación está en ejecución."""
+    """Returns whether the application is running."""
     return running
 
 def check_esc(current_time):
-    """Manejador de evento de teclado para detectar ESC."""
+    """Keyboard event handler to detect ESC."""
     global esc_count, last_esc_time
     
-    # Resetear contador si ha pasado más de X segundos
+    # Reset counter if more than X seconds have passed
     if current_time - last_esc_time > config.ESC_DETECTION_WINDOW:
         esc_count = 0
     
