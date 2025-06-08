@@ -23,6 +23,7 @@ SCAN_INTERVAL = 0.5  # Time between scans in seconds
 # Key settings
 ESC_DETECTION_WINDOW = 2  # Seconds in which ESC keys must be pressed
 ESC_COUNT_THRESHOLD = 3  # Number of ESC presses to show dialog
+ESC_RESET_TIMEOUT = 5  # Seconds after which the ESC counter resets if not reaching threshold
 
 # Resource paths
 def get_assets_path(filename):

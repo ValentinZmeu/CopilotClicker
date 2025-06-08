@@ -10,6 +10,8 @@ esc_count = 0
 last_esc_time = 0
 confirm_window = None
 status_label = None
+main_window = None
+reset_timer_id = None
 
 def set_icon(window, icon_path):
     """Sets the application icon in a way compatible with multiple platforms."""
@@ -71,8 +73,24 @@ def show_confirm_dialog():
     # Set application icon
     set_icon(confirm_window, config.ICON_PATH)
     
+    # Make the window appear as an alert
     confirm_window.attributes("-topmost", True)
+    confirm_window.lift()  # Bring window to the front
+    confirm_window.focus_force()  # Force focus
+    confirm_window.grab_set()  # Make the window modal
     confirm_window.configure(bg=config.UI_BACKGROUND_COLOR)
+    
+    # Play alert sound
+    try:
+        if platform.system() == "Windows":
+            import winsound
+            winsound.MessageBeep(winsound.MB_ICONEXCLAMATION)
+        elif platform.system() == "Darwin":  # macOS
+            os.system("afplay /System/Library/Sounds/Sosumi.aiff")
+        elif platform.system() == "Linux":
+            os.system("paplay /usr/share/sounds/freedesktop/stereo/dialog-warning.oga")
+    except Exception as e:
+        print(f"Could not play alert sound: {e}")
     
     # Confirmation message
     confirm_label = tk.Label(
@@ -128,9 +146,10 @@ def show_confirm_dialog():
 
 def create_info_window():
     """Creates and manages the main information window."""
-    global status_label, paused
+    global status_label, paused, main_window
     
-    window = tk.Tk()
+    main_window = tk.Tk()
+    window = main_window
     window.title(config.APP_NAME)
     
     # Configure and center the window
@@ -252,17 +271,37 @@ def is_running():
 
 def check_esc(current_time):
     """Keyboard event handler to detect ESC."""
-    global esc_count, last_esc_time
+    global esc_count, last_esc_time, reset_timer_id, main_window
     
-    # Reset counter if more than X seconds have passed
+    # Reset counter if more than X seconds have passed since the last press
     if current_time - last_esc_time > config.ESC_DETECTION_WINDOW:
         esc_count = 0
+    
+    # Cancel any existing reset timer
+    if reset_timer_id and main_window:
+        main_window.after_cancel(reset_timer_id)
+        reset_timer_id = None
     
     esc_count += 1
     last_esc_time = current_time
     
+    # Start timer to reset counter if threshold not reached within timeout period
+    if main_window and esc_count < config.ESC_COUNT_THRESHOLD:
+        def reset_counter_if_not_reached():
+            global esc_count, reset_timer_id
+            # Only reset if counter hasn't reached threshold after timeout
+            if 0 < esc_count < config.ESC_COUNT_THRESHOLD:
+                print(f"ESC counter reset after {config.ESC_RESET_TIMEOUT} seconds timeout")
+                esc_count = 0
+            reset_timer_id = None
+        
+        # Schedule reset after timeout period
+        reset_timer_id = main_window.after(config.ESC_RESET_TIMEOUT * 1000, reset_counter_if_not_reached)
+    
     if esc_count >= config.ESC_COUNT_THRESHOLD:
         show_confirm_dialog()
+        # Reset counter after showing dialog
+        esc_count = 0
         return True
     
     return False
