@@ -137,9 +137,27 @@ def show_confirm_dialog():
         width=10
     )
     no_button.pack(side=tk.LEFT, padx=10)
-    
-    # Focus on Yes button
+      # Focus on Yes button
     yes_button.focus_set()
+      # Handle keyboard navigation between buttons
+    def handle_key(event):
+        if event.keysym in ['Left', 'Right']:
+            # Switch focus between Yes and No buttons
+            if confirm_window.focus_get() == yes_button:
+                no_button.focus_set()
+            else:
+                yes_button.focus_set()
+        elif event.keysym == 'Return':
+            # Execute the action of the button that has focus
+            if confirm_window.focus_get() == yes_button:
+                confirm_exit()
+            elif confirm_window.focus_get() == no_button:
+                cancel_exit()
+        
+    # Bind left/right arrow keys to handle_key function
+    confirm_window.bind('<Left>', handle_key)
+    confirm_window.bind('<Right>', handle_key)
+    confirm_window.bind('<Return>', handle_key)
     
     # Handle window close with X button
     confirm_window.protocol("WM_DELETE_WINDOW", cancel_exit)
