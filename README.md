@@ -24,8 +24,8 @@ Automate clicks on the “Continue” button in GitHub Copilot conversations usi
 
 1. **Clone Repository**  
    ```bash
-   git clone https://github.com/yourusername/automation-pyautogui-opencv.git
-   cd automation-pyautogui-opencv
+   git clone https://github.com/ValentinZmeu/CopilotClicker
+   cd CopilotClicker
    ```
 
 2. **Setup Virtual Environment**  

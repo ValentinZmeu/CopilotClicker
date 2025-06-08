@@ -120,13 +120,15 @@ def show_confirm_dialog():
         paused = False
         confirm_window.destroy()
         confirm_window = None
-    
-    # Confirmation buttons
+      # Confirmation buttons
     yes_button = tk.Button(
         button_frame,
         text="Yes",
         command=confirm_exit,
-        width=10
+        width=10,
+        bg=config.UI_BUTTON_PAUSE_COLOR,
+        fg=config.UI_TEXT_COLOR,
+        relief=tk.FLAT
     )
     yes_button.pack(side=tk.LEFT, padx=10)
     
@@ -134,7 +136,10 @@ def show_confirm_dialog():
         button_frame,
         text="No",
         command=cancel_exit,
-        width=10
+        width=10,
+        bg=config.UI_BUTTON_PAUSE_COLOR,
+        fg=config.UI_TEXT_COLOR,
+        relief=tk.FLAT
     )
     no_button.pack(side=tk.LEFT, padx=10)
       # Focus on Yes button
@@ -162,6 +167,46 @@ def show_confirm_dialog():
     # Handle window close with X button
     confirm_window.protocol("WM_DELETE_WINDOW", cancel_exit)
 
+def create_tooltip(widget, text):
+    """Creates a tooltip for a given widget."""
+    tooltip_window = None
+    
+    def show_tooltip(event):
+        nonlocal tooltip_window
+        # Create a new window for the tooltip
+        tooltip_window = tk.Toplevel(main_window)
+        tooltip_window.wm_overrideredirect(True)  # No window decorations
+        tooltip_window.configure(bg=config.UI_TOOLTIP_BACKGROUND_COLOR)
+        
+        # Make tooltip appear in front of all windows
+        tooltip_window.attributes("-topmost", True)
+        tooltip_window.lift()
+        
+        # Add text to the tooltip
+        label = tk.Label(
+            tooltip_window,
+            text=text,
+            fg=config.UI_TOOLTIP_TEXT_COLOR,
+            bg=config.UI_TOOLTIP_BACKGROUND_COLOR,
+            font=("Arial", 10)
+        )
+        label.pack(padx=5, pady=5)
+        
+        # Position the tooltip window
+        x = event.x_root + 10
+        y = event.y_root + 10
+        tooltip_window.wm_geometry(f"+{x}+{y}")
+    
+    def hide_tooltip(event):
+        nonlocal tooltip_window
+        if tooltip_window:
+            tooltip_window.destroy()
+            tooltip_window = None
+    
+    # Bind mouse events to show/hide the tooltip
+    widget.bind("<Enter>", show_tooltip)
+    widget.bind("<Leave>", hide_tooltip)
+
 def create_info_window():
     """Creates and manages the main information window."""
     global status_label, paused, main_window
@@ -169,9 +214,11 @@ def create_info_window():
     main_window = tk.Tk()
     window = main_window
     window.title(config.APP_NAME)
-    
-    # Configure and center the window
+      # Configure and center the window
     center_window(window, config.UI_WINDOW_WIDTH, config.UI_WINDOW_HEIGHT)
+    
+    # Set minimum window size to ensure all elements are visible
+    window.minsize(config.UI_WINDOW_MIN_WIDTH, config.UI_WINDOW_MIN_HEIGHT)
     
     # Set application icon
     set_icon(window, config.ICON_PATH)
@@ -180,15 +227,18 @@ def create_info_window():
     window.attributes("-topmost", True)  # Always visible
     window.configure(bg=config.UI_BACKGROUND_COLOR)
     
-    # Title with information text
+    # Top frame for title
+    top_frame = tk.Frame(window, bg=config.UI_BACKGROUND_COLOR)
+    top_frame.pack(fill=tk.X, pady=(10, 0))
+      # Title with information text
     title_label = tk.Label(
-        window, 
+        top_frame, 
         text=config.APP_NAME,
         fg=config.UI_TEXT_COLOR,
         bg=config.UI_BACKGROUND_COLOR,
         font=("Arial", 16, "bold")
     )
-    title_label.pack(pady=(15, 5))
+    title_label.pack(expand=True)  # Center the title
     
     # Application description
     desc_label = tk.Label(
@@ -210,9 +260,48 @@ def create_info_window():
     )
     status_label.pack(pady=(0, 10))
     
-    # Frame for buttons
+    # Frame for main buttons
     button_frame = tk.Frame(window, bg=config.UI_BACKGROUND_COLOR)
     button_frame.pack(pady=10)
+    
+    # Function to update UI colors when theme changes
+    def update_ui_theme():
+        # Update all widgets with new theme colors
+        window.configure(bg=config.UI_BACKGROUND_COLOR)
+        top_frame.configure(bg=config.UI_BACKGROUND_COLOR)
+        title_label.configure(
+            fg=config.UI_TEXT_COLOR,
+            bg=config.UI_BACKGROUND_COLOR
+        )
+        desc_label.configure(
+            fg=config.UI_SECONDARY_TEXT_COLOR,
+            bg=config.UI_BACKGROUND_COLOR
+        )
+        status_label.configure(
+            bg=config.UI_BACKGROUND_COLOR
+        )
+        button_frame.configure(bg=config.UI_BACKGROUND_COLOR)
+        help_label.configure(
+            fg=config.UI_HELP_TEXT_COLOR,
+            bg=config.UI_BACKGROUND_COLOR
+        )
+        bottom_frame.configure(bg=config.UI_BACKGROUND_COLOR)
+        
+        # Update buttons
+        pause_button.configure(
+            bg=config.UI_BUTTON_PAUSE_COLOR,
+            fg=config.UI_TEXT_COLOR
+        )
+        stop_button.configure(
+            fg=config.UI_TEXT_COLOR
+        )
+        
+        # Update theme toggle button icon
+        theme_toggle_button.configure(
+            text=config.LIGHT_THEME_ICON if config.DARK_MODE else config.DARK_THEME_ICON,
+            bg=config.UI_BACKGROUND_COLOR,
+            fg=config.UI_TEXT_COLOR
+        )
     
     # Function for pause/resume button
     def toggle_pause():
@@ -229,6 +318,11 @@ def create_info_window():
     def stop_app():
         show_confirm_dialog()
     
+    # Function to toggle theme
+    def toggle_theme_handler():
+        config.toggle_theme()
+        update_ui_theme()
+    
     # Pause/resume button
     pause_button = tk.Button(
         button_frame,
@@ -240,6 +334,9 @@ def create_info_window():
         relief=tk.FLAT
     )
     pause_button.pack(side=tk.LEFT, padx=5)
+    
+    # Create tooltip for pause button
+    create_tooltip(pause_button, "Pause/resume the automatic clicking")
     
     # Stop button
     stop_button = tk.Button(
@@ -253,6 +350,9 @@ def create_info_window():
     )
     stop_button.pack(side=tk.LEFT, padx=5)
     
+    # Create tooltip for stop button
+    create_tooltip(stop_button, "Stop the application")
+    
     # Help information
     help_label = tk.Label(
         window, 
@@ -262,6 +362,46 @@ def create_info_window():
         font=("Arial", 9)
     )
     help_label.pack(pady=(5, 0))
+    
+    # Bottom frame for theme toggle
+    bottom_frame = tk.Frame(window, bg=config.UI_BACKGROUND_COLOR)
+    bottom_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=10)    # Theme toggle button at the bottom
+    theme_toggle_button = tk.Button(
+        bottom_frame,
+        text=config.LIGHT_THEME_ICON if config.DARK_MODE else config.DARK_THEME_ICON,
+        command=toggle_theme_handler,
+        font=("Arial", 12),
+        bg=config.UI_BACKGROUND_COLOR,
+        fg=config.UI_TEXT_COLOR,
+        relief=tk.SOLID,  # Solid border
+        borderwidth=1,    # Thin border
+        highlightthickness=0,
+        padx=5,           # Small horizontal padding
+        pady=0,           # No vertical padding for 8px height
+        width=2,          # Make button smaller by setting fixed width
+        height=0,         # Set to 0 to control height manually
+        cursor="hand2"    # Hand cursor on hover
+    )
+    # Configure button to have exactly 8px height
+    theme_toggle_button.configure(font=("Arial", 8))
+    theme_toggle_button.pack(side=tk.RIGHT, padx=10)
+    
+    # Make the button corners rounded (on Windows)
+    if platform.system() == "Windows":
+        try:
+            from ctypes import windll, byref, sizeof, Structure, c_int
+            
+            class POINT(Structure):
+                _fields_ = [("x", c_int), ("y", c_int)]
+            
+            # Round the corners of the button (Windows-specific)
+            hwnd = windll.user32.GetParent(windll.user32.GetDlgItem(theme_toggle_button.winfo_id(), 0))
+            windll.user32.SetWindowRgn(hwnd, windll.gdi32.CreateRoundRectRgn(0, 0, 30, 30, 15, 15), True)
+        except:
+            pass  # If this fails, the button will have normal corners
+    
+    # Create tooltip for theme toggle button
+    create_tooltip(theme_toggle_button, "Toggle between light and dark mode")
     
     # Function to handle window close
     def on_close():
