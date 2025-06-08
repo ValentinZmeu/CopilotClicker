@@ -42,7 +42,7 @@ Automate clicks on the “Continue” button in GitHub Copilot conversations usi
 
 ## ⚙️ Configuration
 
-- Place `button.png` (template image) alongside `start.py`
+- Place `button.png` in the `assets` folder
 - Adjust detection parameters in `config.py`:
   ```python
   MATCH_THRESHOLD = 0.8       # Matching confidence
