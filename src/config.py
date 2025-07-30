@@ -4,7 +4,44 @@ import ctypes
 
 # Application settings
 APP_NAME = "CopilotClicker"
-APP_ID = "CopilotClicker"  # For Windows (AppUserModelID)
+APP_ID = "CopilotClicker"  # For# Resource paths
+def get_assets_path(filename):
+    """Gets the full path to a file in the assets folder."""
+    return os.path.join(os.path.dirname(os.path.dirname(__file__)), 'assets', filename)
+
+def get_click_path(filename=None):
+    """Gets the full path to a file in the assets/click folder.
+    If filename is None, returns the path to the click folder."""
+    if filename:
+        return os.path.join(os.path.dirname(os.path.dirname(__file__)), 'assets', 'click', filename)
+    return os.path.join(os.path.dirname(os.path.dirname(__file__)), 'assets', 'click')
+
+def get_avoid_path(filename=None):
+    """Gets the full path to a file in the assets/avoid folder.
+    If filename is None, returns the path to the avoid folder."""
+    if filename:
+        return os.path.join(os.path.dirname(os.path.dirname(__file__)), 'assets', 'avoid', filename)
+    return os.path.join(os.path.dirname(os.path.dirname(__file__)), 'assets', 'avoid')
+
+def get_all_images_in_directory(directory):
+    """Gets all image files in a directory."""
+    if not os.path.exists(directory):
+        return []
+    
+    image_extensions = ['.png', '.jpg', '.jpeg', '.gif', '.bmp']
+    return [os.path.join(directory, f) for f in os.listdir(directory) 
+            if os.path.isfile(os.path.join(directory, f)) and 
+            os.path.splitext(f)[1].lower() in image_extensions]
+
+ICON_PATH = get_assets_path('icon.ico')
+
+# Dynamically load all button templates
+BUTTON_TEMPLATES = get_all_images_in_directory(get_click_path())
+
+# Dynamically load all button templates to avoid
+AVOID_BUTTON_TEMPLATES = get_all_images_in_directory(get_avoid_path())
+
+# Theme icons (Unicode symbols)serModelID)
 
 # Theme control variables
 MANUAL_THEME_OVERRIDE = False
@@ -81,10 +118,10 @@ UI_BUTTON_PAUSE_COLOR = "#444444" if DARK_MODE else "#DDDDDD"
 UI_BUTTON_STOP_COLOR = "#AA3333"
 
 # UI dimensions
-UI_WINDOW_WIDTH = 350
-UI_WINDOW_HEIGHT = 220
-UI_WINDOW_MIN_WIDTH = 350
-UI_WINDOW_MIN_HEIGHT = 220
+UI_WINDOW_WIDTH = 420
+UI_WINDOW_HEIGHT = 280
+UI_WINDOW_MIN_WIDTH = 380
+UI_WINDOW_MIN_HEIGHT = 340
 
 # Function to toggle theme
 def toggle_theme():
@@ -120,8 +157,8 @@ def toggle_theme():
     return DARK_MODE
 
 # Detection settings
-MATCH_THRESHOLD = 0.8  # Threshold for considering a match (0-1)
-SCAN_INTERVAL = 0.5  # Time between scans in seconds
+MATCH_THRESHOLD = 0.6  # Threshold for considering a match (0-1)
+SCAN_INTERVAL = 2  # Time between scans in seconds
 
 # Key settings
 ESC_DETECTION_WINDOW = 2  # Seconds in which ESC keys must be pressed
@@ -134,7 +171,12 @@ def get_assets_path(filename):
     return os.path.join(os.path.dirname(os.path.dirname(__file__)), 'assets', filename)
 
 ICON_PATH = get_assets_path('icon.ico')
-BUTTON_TEMPLATE_PATH = get_assets_path('button.png')
+# List of button templates to search for
+BUTTON_TEMPLATES = [
+    get_assets_path('button.png'),
+    get_assets_path('button2.png')
+    # Add more button templates as needed
+]
 
 # Theme icons (Unicode symbols)
 DARK_THEME_ICON = "🌙"  # Moon for dark mode
